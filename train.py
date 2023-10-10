@@ -433,6 +433,54 @@ def train(
             logs.insert(tk.END, "\n")
             logs.configure(state="disabled")
 
+def set_segmentation_model( 
+            model,
+            device="cpu",
+            batch_size=10,
+            lr=0.0001,
+            full_img="",
+            full_mask="",
+            img_height=224,
+            img_width=224,
+            lit_n=0,
+            load=''
+           ):
+    if load != '':
+        Load(model, torch.load(load))
+        print(f"load file from {load}")
+    ###################
+    train_transform = A.Compose(
+            [
+                A.Resize(img_height, img_width),
+                ToTensorV2()
+            ],
+        )
+    ###################
+    #### Create data ####
+    full_data = data(full_img, full_mask, train_transform)
+    if lit_n != 0:
+        full_data, _ = random_split(full_data, [lit_n, len(full_data)-lit_n])
+    tr_s = int(len(full_data)*0.9)
+    
+    te_s = len(full_data) - tr_s
+    train_data, test_data = random_split(full_data, [tr_s, te_s])
+
+    train_Loader = DataLoader(train_data, batch_size, shuffle=True, drop_last=True)
+    test_Loader = DataLoader(test_data, batch_size, shuffle=False, drop_last=True)
+    #### optimizer, loss_function, ... ####
+    optimizer = optim.Adam(model.parameters(), lr)
+    loss_f = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
+    
+    segmentation = {
+        "train_Loader": train_Loader,
+        "test_Loader": test_Loader,
+        "optimizer": test_Loader,
+        "loss_f": loss_f,
+        "model": model,
+
+    }
+    return segmentation
+
 def Totest( model,
             load_file,
             test_dir,
