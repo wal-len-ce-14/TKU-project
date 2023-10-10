@@ -428,7 +428,7 @@ def train(
             logs.insert(tk.END, "\n")
             logs.configure(state="disabled")
 
-def set_segmentation_model( 
+def set_model( 
     model,
     batch_size=10,
     lr=0.0001,
@@ -465,14 +465,14 @@ def set_segmentation_model(
     optimizer = optim.Adam(model.parameters(), lr)
     loss_f = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
     
-    segmentation = {
+    set = {
         "train_Loader": train_Loader,
         "test_Loader": test_Loader,
         "optimizer": test_Loader,
         "loss_f": loss_f,
         "model": model
     }
-    return segmentation
+    return set
 
 def train_epoch(
     model,
