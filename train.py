@@ -362,20 +362,15 @@ def train(
                     num_pixel = 0
                     
                     preds = torch.sigmoid(model(x))
-                    
                     p1 = (preds <= 0.5)
                     p2 = (preds > 0.4)
                     preds_1 = torch.where(p1 & p2, 150, 0)
-                    
-
                     p1 = (preds <= 0.4)
                     p2 = (preds > 0.35)
                     preds_2 = torch.where(p1 & p2, 100, 0)
-
                     p1 = (preds <= 0.35)
                     p2 = (preds > 0.3)
                     preds_3 = torch.where(p1 & p2, 50, 0)
-
                     preds = torch.where(preds > 0.5, 255, 0)
 
                     preds = preds + preds_1 + preds_2 + preds_3
@@ -434,21 +429,20 @@ def train(
             logs.configure(state="disabled")
 
 def set_segmentation_model( 
-            model,
-            device="cpu",
-            batch_size=10,
-            lr=0.0001,
-            full_img="",
-            full_mask="",
-            img_height=224,
-            img_width=224,
-            lit_n=0,
-            load=''
-           ):
+    model,
+    batch_size=10,
+    lr=0.0001,
+    full_img="",
+    full_mask="",
+    img_height=224,
+    img_width=224,
+    load='',
+    lit_n=0
+):
+    #### load model parameter ####
     if load != '':
         Load(model, torch.load(load))
         print(f"load file from {load}")
-    ###################
     train_transform = A.Compose(
             [
                 A.Resize(img_height, img_width),
@@ -476,10 +470,81 @@ def set_segmentation_model(
         "test_Loader": test_Loader,
         "optimizer": test_Loader,
         "loss_f": loss_f,
-        "model": model,
-
+        "model": model
     }
     return segmentation
+
+def train_epoch(
+    model,
+    device="cpu",
+    train_Loader='',
+    loss_f='',
+    optimizer='',
+):
+    epoch_loss = 0
+    for idx, (data, target) in enumerate(train_Loader):
+        data = data.to(device, torch.float32)
+        target = target.to(device, torch.float32).unsqueeze(1)
+        prediction = model(data)
+        target = torch.where(target > 127, 1., 0.)
+        loss = loss_f(prediction, target)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        epoch_loss += loss.item()
+        print(f"\t\tBatch {idx+1} done, with loss = {loss}")
+    checkpoint = {'state_dict': model.state_dict(), 'optmizer': optimizer.state_dict()}
+    return checkpoint, epoch_loss/len(train_Loader)
+
+def train_test(
+    model,
+    device="cpu",
+    test_Loader='',
+    show_dir=''
+):
+    with torch.no_grad():
+        all_correct = 0
+        all_pixel = 0
+        for idx, (x, y) in enumerate(test_Loader):
+            x = x.to(device, torch.float32)
+            y = y.to(device).unsqueeze(1)
+            batch_correct = 0
+            preds = torch.sigmoid(model(x))
+            ##### 漸層 #####
+            p1 = (preds <= 0.5)
+            p2 = (preds > 0.4)
+            preds_1 = torch.where(p1 & p2, 150, 0)
+            p1 = (preds <= 0.4)
+            p2 = (preds > 0.35)
+            preds_2 = torch.where(p1 & p2, 100, 0)
+            p1 = (preds <= 0.35)
+            p2 = (preds > 0.3)
+            preds_3 = torch.where(p1 & p2, 50, 0)
+            preds = torch.where(preds > 0.5, 255, 0)
+            preds = preds + preds_1 + preds_2 + preds_3
+            preds = np.clip(preds.cpu(), 0, 255)
+            #################
+            batch_correct = (preds == y.cpu()).sum()
+            num_pixel = y.numel()
+            all_correct += batch_correct
+            all_pixel += num_pixel
+            print(f"* accurracy => {(batch_correct/num_pixel)*100}%\n")
+
+            if show_dir != '':
+                for i, img in enumerate(preds):                               
+                    if idx == 0 and i < 5:
+                        img = img.permute(1, 2, 0)
+                        cv.imwrite(show_dir+'/{}e{}b{}.jpg'.format(epoch, idx+1, i+1), img.numpy())      # 預測遮罩
+                for i, imgx in enumerate(x.cpu()):
+                    if idx == 0 and i < 5 and epoch == 1:
+                        imgx = imgx.permute(1, 2, 0)
+                        cv.imwrite(show_dir+'/_original{}.jpg'.format(i+1), imgx.numpy())            # 原圖
+                for i, imgy in enumerate(y.cpu()):
+                    if idx == 0 and i < 5 and epoch == 1:
+                        imgy = imgy.permute(1, 2, 0)
+                        cv.imwrite(show_dir+'/__target{}.jpg'.format(i+1), imgy.numpy())           # 原遮罩  
+
+        return 0
 
 def Totest( model,
             load_file,
