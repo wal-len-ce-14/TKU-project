@@ -236,45 +236,33 @@ def _train():
 
         json.dump(record, jfile,  indent=2)
         jfile.close()
-
-    # my_Unet = UNet_plus(1, 1).to(device)
-
-    # train_t1 = threading.Thread(
-    #     target=train, args=(
-    #         my_Unet,
-    #         device,
-    #         int(epoch_E.get()),
-    #         int(batch_E.get()),
-    #         float(lr_E.get()),
-    #         img_dir_E.get(),
-    #         mask_dir_E.get(),
-    #         int(img_size_Y.get()),
-    #         int(img_size_X.get()),
-    #         show_dir_E.get(),
-    #         int(lit_E.get()),
-    #         load_E.get(),
-    #         checkpoint_E.get(),
-    #         logs,
-    #         event_stop
-    #     )
-    # )
-    # train_t1.start()
+   
     my_Unet = UNet_plus(1, 1).to(device)    
     segmentation = train.set_model(
         my_Unet,
-        device,
+        int(batch_E.get()),
         float(lr_E.get()),
         img_dir_E.get(),
         mask_dir_E.get(),
+        show_dir_E.get(),
         int(img_size_Y.get()),
         int(img_size_X.get()),
         load_E.get(),
+        checkpoint_E.get(),
         int(lit_E.get()),
     )
-    logs.configure(state="normal")
-    logs.insert(tk.END, "[+] segmentation model set")
-    logs.configure(state="disabled")
-    logs.see(tk.END)
+    train.log_record(logs, "[+] segmentation model set")
+    t1 = threading.Thread(
+        target=train.train_loop,
+        args=(
+            segmentation,
+            device,
+            int(epoch_E.get()),
+            logs,
+            event_stop
+        )
+    )
+    t1.start()
 
 train_btn = tk.Button(text="SEGMENTATION TRAINING", font=('Arial',15,'bold'), command=_train, background='#ccc')
 train_btn.grid(column=0, row=9, pady=(40,8), padx=(10,0), ipadx=34, columnspan=5)
