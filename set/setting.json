@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:5bb3fc9ce9f978ba1f05dbb4e9b4ff8634f534ba3dc7bf13dd64c42e9437f600
-size 371
+{
+  "img_dir": "C:/Users/walle/English_path/net_img/GUI/images",
+  "mask_dir": "C:/Users/walle/English_path/net_img/GUI/masks",
+  "show_dir": "C:/Users/walle/English_path/net_img/GUI/preds",
+  "checkpoint": "C:/Users/walle/English_path/net_img/GUI/checkpoint/test.pth.tar",
+  "load": "",
+  "batch": 1,
+  "epoch": 1000,
+  "lr": 0.001,
+  "lit": 10,
+  "img_size_X": 384,
+  "img_size_Y": 384
+}
