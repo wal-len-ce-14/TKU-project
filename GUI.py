@@ -233,10 +233,8 @@ def _train():
             "img_size_X": int(img_size_X.get()),
             "img_size_Y": int(img_size_Y.get()),
         }
-
         json.dump(record, jfile,  indent=2)
-        jfile.close()
-   
+        jfile.close() 
     my_Unet = UNet_plus(1, 1).to(device)    
     segmentation = train.set_model(
         my_Unet,
@@ -267,7 +265,6 @@ def _train():
 train_btn = tk.Button(text="SEGMENTATION TRAINING", font=('Arial',15,'bold'), command=_train, background='#ccc')
 train_btn.grid(column=0, row=9, pady=(40,8), padx=(10,0), ipadx=34, columnspan=5)
 
-
 def _train_ben_or_mal():
     
     if var2.get() == True:
@@ -297,29 +294,43 @@ def _train_ben_or_mal():
 
         json.dump(record, jfile,  indent=2)
         jfile.close()
-    my_Unet = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
+    my_CNN = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
 
-    train_t2 = threading.Thread(
-        target=train.train_ben_or_mal, args=(
-            my_Unet,
-            device,
-            int(epoch_E.get()),
-            int(batch_E.get()),
-            float(lr_E.get()),
-            img_dir_E.get(),
-            int(img_size_Y.get()),
-            int(img_size_X.get()),
-            show_dir_E.get(),
-            True,
-            int(lit_E.get()),
-            checkpoint_E.get(),
-            load_E.get(),
-            logs,
-            event_stop
-        )
+    # train_t2 = threading.Thread(
+    #     target=train.train_ben_or_mal, args=(
+    #         my_Unet,
+    #         device,
+    #         int(epoch_E.get()),
+    #         int(batch_E.get()),
+    #         float(lr_E.get()),
+    #         img_dir_E.get(),
+    #         int(img_size_Y.get()),
+    #         int(img_size_X.get()),
+    #         show_dir_E.get(),
+    #         True,
+    #         int(lit_E.get()),
+    #         checkpoint_E.get(),
+    #         load_E.get(),
+    #         logs,
+    #         event_stop
+    #     )
+    # )
+    # train_t2.start()
+    # logs.see(tk.END)
+
+    determine = train.set_model(
+        my_CNN,
+        int(batch_E.get()),
+        float(lr_E.get()),
+        img_dir_E.get(),
+        mask_dir_E.get(),
+        show_dir_E.get(),
+        int(img_size_Y.get()),
+        int(img_size_X.get()),
+        load_E.get(),
+        checkpoint_E.get(),
+        int(lit_E.get()),
     )
-    train_t2.start()
-    logs.see(tk.END)
     
 
 ben_or_mal_btn = tk.Button(text="DISTINGUISH TRAINING", font=('Arial',15,'bold'), command=_train_ben_or_mal, background='#ccc')
