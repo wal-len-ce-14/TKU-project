@@ -1,0 +1,4 @@
+# 忽略的檔案
+set/
+result/*.png
+result/*.jpg
