@@ -294,9 +294,7 @@ def _train_ben_or_mal():
 
         json.dump(record, jfile,  indent=2)
         jfile.close()
-    my_CNN = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
-
-    # train_t2 = threading.Thread(
+        # train_t2 = threading.Thread(
     #     target=train.train_ben_or_mal, args=(
     #         my_Unet,
     #         device,
@@ -317,7 +315,7 @@ def _train_ben_or_mal():
     # )
     # train_t2.start()
     # logs.see(tk.END)
-
+    my_CNN = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
     determine = train.set_model(
         my_CNN,
         int(batch_E.get()),
@@ -331,6 +329,18 @@ def _train_ben_or_mal():
         checkpoint_E.get(),
         int(lit_E.get()),
     )
+    train.log_record(logs, "[+] determine model set")
+    t2 = threading.Thread(
+        target=train.deter_loop,
+        args=(
+            determine,
+            device,
+            int(epoch_E.get()),
+            logs,
+            event_stop
+        )
+    )
+    t2.start()
     
 
 ben_or_mal_btn = tk.Button(text="DISTINGUISH TRAINING", font=('Arial',15,'bold'), command=_train_ben_or_mal, background='#ccc')

@@ -6,218 +6,11 @@ from torch.utils.data import DataLoader
 from dataset import data
 from dataset import data_for_ben_or_mal
 import os
-import shutil
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import random_split
 import cv2 as cv 
 import tkinter as tk
-import threading
-
-
-# writer = SummaryWriter('C:/Users/walle/English_path/net_img/Brain_Tumor/logs')  # tensorboard 參考檔案位置
-
-
-def train_ben_or_mal(
-                    model,
-                    device="cpu",
-                    epochs=5,
-                    batch_size=64,
-                    lr=0.001,
-                    full_img="",
-                    img_height=224,
-                    img_width=224,
-                    show_dir="",
-                    save_checkpoint=True,
-                    lit_n=0,
-                    save="",
-                    load_file='',
-                    logs=None,
-                    event_stop=None,
-                    val_precent=0.1,
-                    ):
-    try:
-        if load_file != '':
-            Load(model, torch.load(load_file))
-            print(f"load file from {load_file}")
-
-        
-
-        print(f"====  Training   ====")
-        train_transform = A.Compose(
-            [
-                A.Resize(img_height, img_width),
-                ToTensorV2()
-            ],
-        )
-    #### Create data ####
-        full_data = data_for_ben_or_mal(full_img, train_transform)
-        if lit_n != 0:
-            full_data, _ = random_split(full_data, [lit_n, len(full_data)-lit_n])
-        
-        tr_s = int(len(full_data)*(1 - val_precent))
-        
-        te_s = len(full_data) - tr_s
-        train_data, test_data = random_split(full_data, [tr_s, te_s])
-
-        train_Loader = DataLoader(train_data, batch_size, shuffle=True, drop_last=True)
-        test_Loader = DataLoader(test_data, batch_size, shuffle=False, drop_last=True)
-
-    #### optimizer, loss_function, ... ####
-
-        optimizer = optim.Adam(model.parameters(), lr)
-        loss_f = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
-        global_step = 0
-        decrease = 10
-
-    #### training ####
-
-        for epoch in range(1, epochs+1):
-
-            if event_stop != None:
-                if event_stop.is_set() and event_stop != None:
-                    print("2stop happend!!!!")
-                    if logs != None:
-                        logs.configure(state="normal")
-                        logs.insert(tk.END, "[*] END\n")
-                        logs.configure(state="disabled")
-                    event_stop.clear()
-                    print(event_stop)
-                    break
-
-            print(f"====  epoch {epoch}   ====")
-            if logs != None:
-                logs.configure(state="normal")
-                logs.insert(tk.END, f"====  epoch {epoch}   ====\n")
-                logs.configure(state="disabled")
-            epoch_loss = 0
-            checkpoint = {'state_dict': model.state_dict(), 'optmizer': optimizer.state_dict()}
-            optimizer = optim.Adam(model.parameters(), lr)
-
-
-            for idx, (i_data, target) in enumerate(train_Loader):
-
-                if event_stop != None:
-                    if event_stop.is_set():
-                        print("stop happend!!!!")
-                        break
-
-                i_data = i_data.to(device, torch.float32)
-                target = target.to(device, torch.float32)
-
-                prediction = model(i_data)
-                loss = loss_f(prediction, target)
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                global_step += 1
-                epoch_loss += loss.item()
-
-                print(f"\t\tBatch {idx+1} done, with loss = {loss}")
-                if logs != None:
-                    logs.configure(state="normal")
-                    logs.insert(tk.END, f"[+] Batch {idx+1} done, with loss = {loss}\n")
-                    logs.configure(state="disabled")
-                    logs.see(tk.END)
-                
-            print(f"############ {epoch} epoch loss = {epoch_loss / len(train_Loader)} lr = {lr} ############")
-            if logs != None:
-                logs.configure(state="normal")
-                logs.insert(tk.END, f"[+] {epoch} epoch loss = {epoch_loss / len(train_Loader)}, lr = {lr}\n")
-                logs.configure(state="disabled")
-                logs.see(tk.END)
-            # if epoch == decrease:
-            #     if lr > 2e-5:
-            #         lr = lr*0.5
-            #         decrease *= 2
-            #     else:
-            #         lr = lr*0.8
-            #         decrease *= 3
-            if save_checkpoint:
-                Save(checkpoint, save)
-
-    #### check accurracy ####
-
-            print("====  check accurracy  ====\n")
-            if logs != None:
-                logs.configure(state="normal")
-                logs.insert(tk.END, "====  check accurracy  ====\n")
-                logs.configure(state="disabled")
-                logs.see(tk.END)
-            benign = torch.tensor([1, 0, 0])
-            malignant = torch.tensor([0,1,0])
-            normal = torch.tensor([0,0,1])
-
-            with torch.no_grad():
-                num_correct = 0
-                num_pixel = 0
-                
-                for idx, (x, y) in enumerate(test_Loader):
-                    
-                    if event_stop != None:
-                        if event_stop.is_set():
-                            print("stop happend!!!!")
-                            break
-                    x = x.to(device, torch.float32)
-                    y = y.to(device)
-                    preds = torch.sigmoid(model(x))
-                    preds = preds.cpu()
-                    y = y.cpu()
-
-                    # print(f"pred.shape = {preds.shape}")
-
-                    preds_p = preds / preds.sum(dim=1).unsqueeze(0).transpose(0,1)
-
-                    
-
-                    print(f"y = \n{y}")
-                    preds = torch.where(preds > 0.5, 1, 0)
-                    num_correct += (preds == y).sum()
-                    num_pixel += y.numel()
-                    print(f"preds_nurmalize = \n{preds}")
-
-
-                    print(f"num_correct: {num_correct}, num_pixel: {num_pixel}\n")
-                    print(f"* accurracy => {round(float(num_correct/num_pixel)*100, 2)}%\n")
-                    if logs != None:
-                        logs.configure(state="normal")
-                        logs.insert(tk.END, f"[+] accurracy => {round(float(num_correct/num_pixel)*100, 2)}%\n")
-                        logs.configure(state="disabled")
-
-                    if show_dir != '':
-                        for i, imgx in enumerate(x.cpu()):
-                            if idx == 0 and i < 5 and epoch == 1:
-                                imgx = imgx.permute(1, 2, 0) 
-                                if y[i].equal(benign):
-                                    cv.imwrite(show_dir+'/_{}benign.jpg'.format(i+1), imgx.numpy())            # 原圖
-                                elif y[i].equal(malignant):
-                                    cv.imwrite(show_dir+'/_{}malignant.jpg'.format(i+1), imgx.numpy())            # 原圖
-                                elif y[i].equal(normal):
-                                    cv.imwrite(show_dir+'/_{}normal.jpg'.format(i+1), imgx.numpy())            # 原圖
-                        for i, imgx in enumerate(x.cpu()):
-                            if idx == 0 and i < 5:
-                                imgx = imgx.permute(1, 2, 0)
-
-                                if preds[i].equal(benign):
-                                    cv.imwrite(show_dir+'/{}e{}b{}_benign_{}%.jpg'.format(epoch, idx+1, i+1, round(float(preds_p[i][0])*100, 2)), imgx.numpy())      # 預測
-                                    # print(f"---benign---> {epoch}e{idx}b{i}")
-                                elif preds[i].equal(malignant):
-                                    cv.imwrite(show_dir+'/{}e{}b{}_malignant_{}%.jpg'.format(epoch, idx+1, i+1, round(float(preds_p[i][1])*100, 2)), imgx.numpy())      # 預測
-                                    # print(f"---malignant---> {epoch}e{idx}b{i}")
-                                elif preds[i].equal(normal):
-                                    cv.imwrite(show_dir+'/{}e{}b{}_normal_{}%.jpg'.format(epoch, idx+1, i+1, round(float(preds_p[i][2])*100, 2)), imgx.numpy())      # 預測
-                                    # print(f"---normal---> {epoch}e{idx}b{i}")
-                                else:
-                                    cv.imwrite(show_dir+'/{}e{}b{}_uncertain.jpg'.format(epoch, idx+1, i+1), imgx.numpy())
-                                    # print(f"---uncertain---> {epoch}e{idx}b{i}")
-    except Exception as e:
-        print(e)
-        if logs != None:
-            logs.configure(state="normal")
-            logs.insert(tk.END, "[-] ")
-            logs.insert(tk.END, e)
-            logs.insert(tk.END, "\n")
-            logs.configure(state="disabled")
 
 def log_record(logs, str):
     if logs != '':
@@ -253,15 +46,16 @@ def set_model(
     ###################
     #### Create data ####
     # --mask
-    full_data = data(full_img, full_mask, train_transform)
-    if lit_n != 0:
-        full_data, _ = random_split(full_data, [lit_n, len(full_data)-lit_n])
-    tr_s = int(len(full_data)*0.9)
-    te_s = len(full_data) - tr_s
-    train_data, test_data = random_split(full_data, [tr_s, te_s])
+    if full_mask != '':
+        full_data = data(full_img, full_mask, train_transform)
+        if lit_n != 0:
+            full_data, _ = random_split(full_data, [lit_n, len(full_data)-lit_n])
+        tr_s = int(len(full_data)*0.9)
+        te_s = len(full_data) - tr_s
+        train_data, test_data = random_split(full_data, [tr_s, te_s])
 
-    train_Loader = DataLoader(train_data, batch_size, shuffle=True, drop_last=True)
-    test_Loader = DataLoader(test_data, batch_size, shuffle=False, drop_last=True)
+        train_Loader = DataLoader(train_data, batch_size, shuffle=True, drop_last=True)
+        test_Loader = DataLoader(test_data, batch_size, shuffle=False, drop_last=True)
     
     # --deter
     full_data = data_for_ben_or_mal(full_img, train_transform)
@@ -403,9 +197,11 @@ def deter_loop(
     stop=None    
 ):
     try:
+        print("in deter")
         for epoch in range(1, epochs+1):
             if stop.is_set() and stop != None:
                 log_record(logs, f"[*] epoch stop")
+                stop.clear()
                 break   
             epoch_loss = 0
             for idx, (data, target) in enumerate(set["train_deter"]):
@@ -424,7 +220,7 @@ def deter_loop(
                 log_record(logs, f"[+] Batch {idx+1} done, with loss = {loss}")
             checkpoint = {'state_dict': set["model"].state_dict(), 'optmizer': set["optimizer"].state_dict()}
             # 還沒弄判斷要不要保存參數的函式
-            accuracy = mask_test(
+            accuracy = deter_test(
                 set["model"],
                 device,
                 set["test_deter"],
@@ -449,6 +245,7 @@ def train_loop(
         for epoch in range(1, epochs+1):
             if stop.is_set() and stop != None:
                 log_record(logs, f"[*] epoch stop")
+                stop.clear()
                 break
             epoch_loss = 0
             for idx, (data, target) in enumerate(set["train_Loader"]):
@@ -541,85 +338,9 @@ def main():
     from Net import UNet_plus
     from Net import CNN
 
-    my_Unet = CNN(1, 3, img_height, img_width) # 只能是灰階圖 通道為1 通道3要改"dataset.py"
+    my_CNN = CNN(1, 3, img_height, img_width) # 只能是灰階圖 通道為1 通道3要改"dataset.py"
 
-    # apt = input("select option\n"
-                
 
-    #             "\t1 training\n"
-    #             "\t2 testing\n"
-    #             "\t3 data classification\n"
-    #             "\t4 test...\n"
-    #             ">> "
-    #             )
-    # if apt == "1":
-    #     apt = input("select option\n"
-    #                 f"\t1 load checkpoint from {load_file}\n"
-    #                 "\t2 load checkpoint\n"
-    #                 "\t3 dont load checkpoint\n"
-    #                 ">> "
-    #                 )
-    #     if apt == '3':
-    #         load = False
-    #     else:
-    #         load = True
-    #         if apt == '2':
-    #             load_file = input("Enter the checkpoint file location: ")
-
-    #     # if load:
-    #     #     Load(my_Unet, torch.load(load_file))
-    #     #     print(f"load file from {load_file}")
-        # train(my_Unet, 
-        #     device, 
-        #     epochs, 
-        #     batch_size, 
-        #     learning_rate,
-        #     img_dir,
-        #     mask_dir,
-        #     img_height,
-        #     img_width,
-        #     val_precent=0.1,
-        #     save_checkpoint=save,
-        #     lit_n=lit_n,
-        #     test_dir=test_dir,
-        #     save=save_file,
-        #     load_file=load_file
-        #     )
-            
-        
-    # if apt == '2':
-    #     Totest( my_Unet,
-    #         load_file,
-    #         test_dir,
-    #         test_dir,
-    #         img_height = img_height,
-    #         img_width = img_width,
-    #         )
-        
-    # if apt == '3':
-    #     classification(source_dir, original_dir, masks_dir)
-    
-    # if apt == '4':
-    #     window = tk.Tk()
-    #     window.title("專題")
-    #     window.geometry('380x400')
-    #     window.resizable(False, False)
-    #     window.mainloop()
-    train_ben_or_mal(
-                    my_Unet,
-                    device,
-                    epochs,
-                    batch_size,
-                    learning_rate,
-                    img_dir,
-                    img_height,
-                    img_width,
-                    show_dir=test_dir,
-                    save_checkpoint=save,
-                    lit_n=lit_n,
-                    save=save_file,
-                    load_file=load_file
-                    )
 
 if __name__ == "__main__":
     main()
