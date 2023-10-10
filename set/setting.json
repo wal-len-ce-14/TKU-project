@@ -8,6 +8,6 @@
   "epoch": 1000,
   "lr": 0.001,
   "lit": 10,
-  "img_size_X": 384,
-  "img_size_Y": 384
+  "img_size_X": 224,
+  "img_size_Y": 224
 }
