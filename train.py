@@ -36,7 +36,6 @@ def set_model(
     if load != '':
         Load(model, torch.load(load))
         print(f"load file from {load}")
-    ###################
     train_transform = A.Compose(
             [
                 A.Resize(img_height, img_width),
@@ -72,7 +71,7 @@ def set_model(
     optimizer = optim.Adam(model.parameters(), lr)
     loss_f = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
     
-    segmentation = {
+    set = {
         "train_Loader": train_Loader,
         "test_Loader": test_Loader,
         "train_deter": train_deter_Loader,
@@ -344,7 +343,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
