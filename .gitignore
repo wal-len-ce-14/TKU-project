@@ -1,4 +1,9 @@
 # 忽略的檔案
 set/
 result/*.png
+<<<<<<< HEAD
 result/*.jpg
+=======
+result/*.jpg
+checkpoint/
+>>>>>>> f8c03806e6b5d33af15c0ff64cf54c908f7da241
