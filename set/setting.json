@@ -1,13 +1,13 @@
 {
-  "img_dir": "C:/Users/walle/English_path/net_img/GUI/images",
-  "mask_dir": "C:/Users/walle/English_path/net_img/GUI/masks",
-  "show_dir": "C:/Users/walle/English_path/net_img/GUI/preds",
-  "checkpoint": "C:/Users/walle/English_path/net_img/GUI/checkpoint/test.pth.tar",
+  "img_dir": "C:/Users/TKU-STAFF/Desktop/wall/images",
+  "mask_dir": "C:/Users/TKU-STAFF/Desktop/wall/masks",
+  "show_dir": "C:/Users/TKU-STAFF/Desktop/TKU-project/preds",
+  "checkpoint": "C:/Users/TKU-STAFF/Desktop/TKU-project/checkpoint.pth.tar",
   "load": "",
-  "batch": 1,
+  "batch": 10,
   "epoch": 1000,
-  "lr": 0.001,
-  "lit": 10,
+  "lr": 1e-08,
+  "lit": 0,
   "img_size_X": 224,
   "img_size_Y": 224
 }

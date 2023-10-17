@@ -9,7 +9,7 @@ window = tk.Tk()
 window.title("專題")
 window.geometry('960x600')
 window.resizable(False, False)
-window.iconbitmap("./icon.ico")
+# window.iconbitmap("./icon.ico")
 
 #img_dir
 img_dir = tk.Label(text="img_dir", font=('Arial',15,'bold'))
