@@ -2,12 +2,12 @@
   "img_dir": "C:/Users/walle/English_path/net_img/GUI/images",
   "mask_dir": "C:/Users/walle/English_path/net_img/GUI/masks",
   "show_dir": "C:/Users/walle/English_path/net_img/GUI/preds",
-  "checkpoint": "C:/Users/walle/English_path/net_img/GUI/checkpoint/test.pth.tar",
+  "checkpoint": "C:/Users/walle/English_path/net_img/GUI/checkpoint/001.pth.tar",
   "load": "",
   "batch": 1,
-  "epoch": 1000,
-  "lr": 0.001,
-  "lit": 10,
-  "img_size_X": 224,
-  "img_size_Y": 224
+  "epoch": 20,
+  "lr": 0.0001,
+  "lit": 20,
+  "img_size_X": 256,
+  "img_size_Y": 256
 }

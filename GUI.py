@@ -200,9 +200,7 @@ save_para2.grid(column=4, row=10, sticky=tk.W)
 
 
 
-from Net import UNet 
-from Net import UNet_plus
-from Net import CNN
+from Net import CNN, resNet, UNet_plus, UNet
 import torch
 
 
@@ -315,9 +313,10 @@ def _train_ben_or_mal():
     # )
     # train_t2.start()
     # logs.see(tk.END)
-    my_CNN = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
+    # my_CNN = CNN(1, 3, int(img_size_Y.get()), int(img_size_X.get())).to(device)
+    my_model = resNet(1,3,int(img_size_Y.get()))
     determine = train.set_model(
-        my_CNN,
+        my_model,
         int(batch_E.get()),
         float(lr_E.get()),
         img_dir_E.get(),

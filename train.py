@@ -69,7 +69,7 @@ def set_model(
     test_deter_Loader = DataLoader(test_data, batch_size, shuffle=False, drop_last=True)
     #### optimizer, loss_function, ... ####
     optimizer = optim.Adam(model.parameters(), lr)
-    loss_f = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
+    loss_f = nn.CrossEntropyLoss() 
     
     set = {
         "train_Loader": train_Loader,
@@ -151,9 +151,11 @@ def deter_test(
             y = y.cpu()
             preds_p = preds / preds.sum(dim=1).unsqueeze(0).transpose(0,1)
             preds = torch.where(preds > 0.5, 1, 0)
-            all_correct += (preds == y).sum()
-            all_pixel = y.numel()
+            all_correct += (preds * y).sum()
+            all_pixel += y.numel()
+            print(f"tt = {(preds * y)}")
             print(f"preds_nurmalize = \n{preds}")
+            print(f"true_nurmalize = \n{y}")
             print(f"num_correct: {all_correct}, num_pixel: {all_pixel}\n")
             print(f"* accurracy => {round(float(all_correct/all_pixel)*100, 2)}%\n")
             
@@ -232,6 +234,7 @@ def deter_loop(
     except Exception as e:
          print("Error!!!")  
          log_record(logs, f"[-] {e}")
+         log_record("[*] Error")
 
 def train_loop(
     set,
