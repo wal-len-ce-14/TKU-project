@@ -1,13 +1,13 @@
 {
-  "img_dir": "C:/Users/TKU-STAFF/Desktop/wall/images",
-  "mask_dir": "C:/Users/TKU-STAFF/Desktop/wall/masks",
+  "img_dir": "C:/Users/TKU-STAFF/Desktop/TKU-project/images",
+  "mask_dir": "C:/Users/TKU-STAFF/Desktop/TKU-project/masks",
   "show_dir": "C:/Users/TKU-STAFF/Desktop/TKU-project/preds",
-  "checkpoint": "C:/Users/TKU-STAFF/Desktop/TKU-project/checkpoint.pth.tar",
+  "checkpoint": "C:/Users/TKU-STAFF/Desktop/TKU-project/\u65b0\u589e\u8cc7\u6599\u593e/cccc.pth.tar",
   "load": "",
-  "batch": 10,
+  "batch": 1,
   "epoch": 1000,
-  "lr": 1e-08,
-  "lit": 0,
+  "lr": 1e-05,
+  "lit": 20,
   "img_size_X": 224,
   "img_size_Y": 224
 }
