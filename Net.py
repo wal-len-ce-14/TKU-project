@@ -375,7 +375,7 @@ class resNet(nn.Module):
 
 if __name__ == "__main__":
     x = torch.randn(10, 1, 256, 256)
-    res = resNet(1, 1, 256)
+    res = UNet(1, 1)
     y = res(x)
 
     print(x.shape)

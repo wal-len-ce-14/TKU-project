@@ -3,3 +3,5 @@ set/
 result/*.png
 result/*.jpg
 checkpoint/
+images/
+masks/

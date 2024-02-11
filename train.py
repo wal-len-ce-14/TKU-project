@@ -153,7 +153,7 @@ def deter_test(
             preds = torch.where(preds > 0.5, 1, 0)
             all_correct += (preds * y).sum()
             all_pixel += y.numel()
-            print(f"tt = {(preds * y)}")
+            print(f"tt = {(preds * y).sum()}")
             print(f"preds_nurmalize = \n{preds}")
             print(f"true_nurmalize = \n{y}")
             print(f"num_correct: {all_correct}, num_pixel: {all_pixel}\n")
@@ -197,6 +197,7 @@ def deter_loop(
     logs='',
     stop=None    
 ):
+    base = 50
     try:
         print("in deter")
         for epoch in range(1, epochs+1):
@@ -219,8 +220,7 @@ def deter_loop(
                 epoch_loss += loss.item()
                 print(f"\t\tBatch {idx+1} done, with loss = {loss}")
                 log_record(logs, f"[+] Batch {idx+1} done, with loss = {loss}")
-            checkpoint = {'state_dict': set["model"].state_dict(), 'optmizer': set["optimizer"].state_dict()}
-            # 還沒弄判斷要不要保存參數的函式
+            
             accuracy = deter_test(
                 set["model"],
                 device,
@@ -228,6 +228,10 @@ def deter_loop(
                 set["show_dir"],
                 epoch
             )
+            if accuracy > base:
+                torch.save(set["model"], f'./cnn_model/e{epoch}_acc{accuracy}%.pth')
+                base = accuracy
+                log_record(logs, f"[+] save model in ./cnn_model/e{epoch}_acc{accuracy}%.pth")
             log_record(logs, f"[+] epoch {epoch+1} done, with loss = {epoch_loss/len(set['train_deter'])}")
             log_record(logs, f"[+] accuracy => {accuracy}%")
         log_record(logs, f"[+] END")
@@ -256,17 +260,19 @@ def train_loop(
                     break
                 data = data.to(device, torch.float32)
                 target = target.to(device, torch.float32).unsqueeze(1)
-                prediction = set["model"](data)
+                prediction = torch.sigmoid(set["model"](data))
                 target = torch.where(target > 127, 1., 0.)
-                loss = set["loss_f"](prediction, target)
+                
+                # print(set["loss_f"])
+                
                 set["optimizer"].zero_grad()
+                loss = nn.BCELoss()(prediction,target)
                 loss.backward()
                 set["optimizer"].step()
                 epoch_loss += loss.item()
                 print(f"\t\tBatch {idx+1} done, with loss = {loss}")
                 log_record(logs, f"[+] Batch {idx+1} done, with loss = {loss}")
-            checkpoint = {'state_dict': set["model"].state_dict(), 'optmizer': set["optimizer"].state_dict()}
-            # 還沒弄判斷要不要保存參數的函式
+            
             accuracy = mask_test(
                 set["model"],
                 device,
