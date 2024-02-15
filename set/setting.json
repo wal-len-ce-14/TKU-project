@@ -1,13 +1,13 @@
 {
-  "img_dir": "C:/Users/walle/English_path/net_img/GUI/images",
+  "img_dir": "C:/Users/walle/English_path/net_img/GUI/image_for_cnn",
   "mask_dir": "C:/Users/walle/English_path/net_img/GUI/masks",
   "show_dir": "C:/Users/walle/English_path/net_img/GUI/preds",
-  "checkpoint": "C:/Users/walle/English_path/net_img/GUI/checkpoint/123.pth.tar",
+  "checkpoint": "",
   "load": "",
-  "batch": 5,
-  "epoch": 200,
-  "lr": 1e-05,
-  "lit": 100,
-  "img_size_X": 224,
-  "img_size_Y": 224
+  "batch": 10,
+  "epoch": 50,
+  "lr": 0.0001,
+  "lit": 0,
+  "img_size_X": 128,
+  "img_size_Y": 128
 }

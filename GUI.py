@@ -7,7 +7,7 @@ import ctypes
 
 window = tk.Tk()
 window.title("專題")
-window.geometry('960x650')
+window.geometry('960x600')
 window.resizable(False, False)
 window.iconbitmap("./icon.ico")
 
@@ -346,17 +346,39 @@ def usemodel():
                 w.grid_forget()
         layout()
 contr = 1
-use = tk.Button(text="use model", font=('Arial',15,'bold'), background='#ccc', command=usemodel)
+use = tk.Button(text="use model", font=('Arial',10,'bold'), background='#bef', command=usemodel)
+# test page
+# choose test picture
 test_picture = tk.Label(text="test_picture", font=('Arial',15,'bold'))
 
 test_picture_E = tk.Entry(font=('Arial',15))
 test_picture_E.insert(0, "* 必填")
-def loadtest_dir():
-    file_path = filedialog.askopenfile()
+def loadtest():
+    file_path = filedialog.askopenfilename()
     if test_picture_E.get() is not None:
         test_picture_E.delete(0,'end')
     test_picture_E.insert(0,file_path) 
-test_picture_button = tk.Button(text="...", height=1, command=loadtest_dir)
+test_picture_button = tk.Button(text="...", height=1, command=loadtest)
+# choose seg model
+seg_model = tk.Label(text="seg_model", font=('Arial',15,'bold'))
+seg_model_E = tk.Entry(font=('Arial',15))
+seg_model_E.insert(0, "* 必填")
+def loadseg():
+    file_path = filedialog.askopenfilename()
+    if seg_model_E.get() is not None:
+        seg_model_E.delete(0,'end')
+    seg_model_E.insert(0,file_path) 
+seg_model_button = tk.Button(text="...", height=1, command=loadseg)
+# choose det model
+det_model = tk.Label(text="det_model", font=('Arial',15,'bold'))
+det_model_E = tk.Entry(font=('Arial',15))
+det_model_E.insert(0, "* 必填")
+def loaddeter():
+    file_path = filedialog.askopenfilename()
+    if det_model_E.get() is not None:
+        det_model_E.delete(0,'end')
+    seg_model_E.insert(0,file_path) 
+det_model_button = tk.Button(text="...", height=1, command=loaddeter)
 
 def layout(l=0):
     if l == 0:
@@ -394,11 +416,17 @@ def layout(l=0):
         save_para2.grid(column=4, row=10, sticky=tk.W)
         train_btn.grid(column=0, row=9, pady=(40,8), padx=(10,0), ipadx=34, columnspan=5)
         ben_or_mal_btn.grid(column=0, row=10, pady=8, padx=(10,0), ipadx=50, columnspan=5)
-        use.grid(column=0, row=11, pady=8, padx=(10,0), ipadx=50, columnspan=5)
+        use.grid(column=1, row=0, pady=(5,0), padx=(0,0), ipadx=0, columnspan=1)
     elif l == 1:
         test_picture.grid(column=0, row=1, pady=(3,8), padx=(15,10),columnspan=1)
         test_picture_E.grid(column=1, row=1, pady=8, ipadx=50,columnspan=3)
         test_picture_button.grid(column=4, row=1, pady=8, padx=(10,10), columnspan=1)
+        seg_model.grid(column=0, row=2, pady=(3,8), padx=(15,10),columnspan=1)
+        seg_model_E.grid(column=1, row=2, pady=8, ipadx=50,columnspan=3)
+        seg_model_button.grid(column=4, row=2, pady=8, padx=(10,10), columnspan=1)
+        det_model.grid(column=0, row=3, pady=(3,8), padx=(15,10),columnspan=1)
+        det_model_E.grid(column=1, row=3, pady=8, ipadx=50,columnspan=3)
+        det_model_button.grid(column=4, row=3, pady=8, padx=(10,10), columnspan=1)
 
 layout()
 logs.see(tk.END)

@@ -80,7 +80,9 @@ def set_model(
         "loss_f": loss_f,
         "model": model,
         "show_dir": show_dir,
-        "save": save
+        "save": save,
+        "base_seg": 80,
+        "base_det": 60
     }
     return set
 
@@ -197,7 +199,6 @@ def deter_loop(
     logs='',
     stop=None    
 ):
-    base = 50
     try:
         print("in deter")
         for epoch in range(1, epochs+1):
@@ -221,19 +222,20 @@ def deter_loop(
                 print(f"\t\tBatch {idx+1} done, with loss = {loss}")
                 log_record(logs, f"[+] Batch {idx+1} done, with loss = {loss}")
             
-            accuracy = deter_test(
+            accuracy = round(deter_test(
                 set["model"],
                 device,
                 set["test_deter"],
                 set["show_dir"],
                 epoch
-            )
-            if accuracy > base:
-                torch.save(set["model"], f'./cnn_model/e{epoch}_acc{accuracy}%.pth')
-                base = accuracy
-                log_record(logs, f"[+] save model in ./cnn_model/e{epoch}_acc{accuracy}%.pth")
+            ),2)
+            
             log_record(logs, f"[+] epoch {epoch+1} done, with loss = {epoch_loss/len(set['train_deter'])}")
             log_record(logs, f"[+] accuracy => {accuracy}%")
+            if accuracy > set["base_det"]:
+                set["base_det"] = accuracy
+                torch.save(set["model"], f'./model/det/e{epoch}acc{accuracy}%.pth')
+                log_record(logs, f"[+] save model in ./model/det/e{epoch}acc{accuracy}%.pth")
         log_record(logs, f"[+] END")
     except Exception as e:
          print("Error!!!")  
@@ -273,15 +275,20 @@ def train_loop(
                 print(f"\t\tBatch {idx+1} done, with loss = {loss}")
                 log_record(logs, f"[+] Batch {idx+1} done, with loss = {loss}")
             
-            accuracy = mask_test(
+            accuracy = round(mask_test(
                 set["model"],
                 device,
                 set["test_Loader"],
                 set["show_dir"],
                 epoch
-            )
+            ),2)
             log_record(logs, f"[+] epoch {epoch+1} done, with loss = {epoch_loss/len(set['train_Loader'])}")
             log_record(logs, f"[+] accuracy => {accuracy}%")
+            if accuracy > set["base_seg"]:
+                set["base_seg"] = accuracy
+                torch.save(set["model"], f'./model/seg/e{epoch}acc{accuracy}%.pth')
+                log_record(logs, f"[+] save model in ./model/seg/e{epoch}acc{accuracy}%.pth")
+
         log_record(logs, f"[+] END")
     except Exception as e:
          print("Error!!!")  
