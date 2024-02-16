@@ -292,7 +292,7 @@ def _train_ben_or_mal():
 
         json.dump(record, jfile,  indent=2)
         jfile.close()
-    my_model = resNet(1,3,int(img_size_Y.get()))
+    my_model = resNet(1,3,int(img_size_Y.get())).to(device)
     determine = train.set_model(
         my_model,
         int(batch_E.get()),
