@@ -5,5 +5,4 @@ result/*.jpg
 checkpoint/
 images/
 masks/
-model/
 __pycache__
