@@ -2,7 +2,7 @@ import train
 import tkinter as tk
 from tkinter import filedialog
 import threading 
-import ctypes
+from PIL import  ImageTk, Image
 
 
 window = tk.Tk()
@@ -337,7 +337,6 @@ def usemodel():
         layout(1)
 
     else:
-        print('ewfwwfwf')
         contr = 1
         for w in window.winfo_children():
             if w == use:
@@ -358,6 +357,14 @@ def loadtest():
     if test_picture_E.get() is not None:
         test_picture_E.delete(0,'end')
     test_picture_E.insert(0,file_path) 
+    try:
+        print()
+        img_test= ImageTk.PhotoImage(Image.open(test_picture_E.get()).resize((224, 224)))
+        img_t = tk.Label(image=img_test)
+        img_t.image = img_test
+        img_t.grid(column=5, row=1, pady=10, padx=(70,0), columnspan=5, rowspan=5) 
+    except Exception as e:
+        print(e)
 test_picture_button = tk.Button(text="...", height=1, command=loadtest)
 # choose seg model
 seg_model = tk.Label(text="seg_model", font=('Arial',15,'bold'))
@@ -379,6 +386,21 @@ def loaddeter():
         det_model_E.delete(0,'end')
     seg_model_E.insert(0,file_path) 
 det_model_button = tk.Button(text="...", height=1, command=loaddeter)
+
+def totest():
+    result = train.testmodel(
+        seg_model_E.get(),
+        det_model_E.get(),
+        test_picture_E.get(),
+        img_size=224
+    )
+    test_mask = tk.Label(image=result["seg_PLT"])
+    test_mask.image = result["seg_PLT"]
+    test_mask.grid(column=1, row=5, pady=10, columnspan=5, rowspan=5)
+
+
+
+start = tk.Button(text="Start test", command=totest)
 
 def layout(l=0):
     if l == 0:
@@ -418,15 +440,17 @@ def layout(l=0):
         ben_or_mal_btn.grid(column=0, row=10, pady=8, padx=(10,0), ipadx=50, columnspan=5)
         use.grid(column=1, row=0, pady=(5,0), padx=(0,0), ipadx=0, columnspan=1)
     elif l == 1:
-        test_picture.grid(column=0, row=1, pady=(3,8), padx=(15,10),columnspan=1)
+        use.grid(column=0, row=0, pady=(5,0), padx=(0,0), ipadx=0, columnspan=1)
+        test_picture.grid(column=0, row=1, pady=(3,8), padx=(25,10),columnspan=1)
         test_picture_E.grid(column=1, row=1, pady=8, ipadx=50,columnspan=3)
         test_picture_button.grid(column=4, row=1, pady=8, padx=(10,10), columnspan=1)
-        seg_model.grid(column=0, row=2, pady=(3,8), padx=(15,10),columnspan=1)
+        seg_model.grid(column=0, row=2, pady=(3,8), padx=(25,10),columnspan=1)
         seg_model_E.grid(column=1, row=2, pady=8, ipadx=50,columnspan=3)
         seg_model_button.grid(column=4, row=2, pady=8, padx=(10,10), columnspan=1)
-        det_model.grid(column=0, row=3, pady=(3,8), padx=(15,10),columnspan=1)
+        det_model.grid(column=0, row=3, pady=(3,8), padx=(25,10),columnspan=1)
         det_model_E.grid(column=1, row=3, pady=8, ipadx=50,columnspan=3)
         det_model_button.grid(column=4, row=3, pady=8, padx=(10,10), columnspan=1)
+        
 
 layout()
 logs.see(tk.END)

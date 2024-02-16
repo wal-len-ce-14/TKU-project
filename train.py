@@ -293,14 +293,58 @@ def train_loop(
     except Exception as e:
          print("Error!!!")  
          log_record(logs, f"[-] {e}")
-    
+
+def testmodel(
+  model_seg,
+  model_det,
+  test_img,
+  img_size=224,      
+):
+    seg = torch.load(model_seg)
+    det = torch.load(model_det)
+    to_transform = A.Compose(
+        [
+            A.Resize(img_size, img_size),
+            ToTensorV2()
+        ],
+    )
+    image = to_transform(image=test_img)["image"]
+    preds_seg = torch.sigmoid(seg(image))
+    preds_seg = torch.where(preds_seg > 0.5, 255, 0)
+    preds_seg = preds_seg.squeeze(0).permute(1, 2, 0)
+
+    preds_det_o = torch.sigmoid(det(image))
+    preds_det = torch.where(preds_det_o > 0.5, 1, 0)
+    benign = torch.tensor([1, 0, 0])
+    malignant = torch.tensor([0,1,0])
+    normal = torch.tensor([0,0,1])
+    if preds_det.equal(benign):
+        det = f"benign_{preds_det_o[0]*100}%"                  
+    elif preds_det.equal(malignant):
+        det = f"malignant_{preds_det_o[1]*100}%"
+    elif preds_det.equal(normal):
+        det = f"normal_{preds_det_o[2]*100}%"
+    else:
+        det = "not sure"  
+
+    from PIL import Image, ImageTk
+    preds_seg_PLT = cv.cvtColor(preds_seg, cv.COLOR_BGR2RGB)
+    img_PLT = Image.fromarray(preds_seg_PLT)
+    img = ImageTk.PhotoImage(img_PLT)
+    return {
+        "seg": preds_seg,   # picture: cv
+        "seg_PLT": img,   # picture: PLT
+        "det": det          # deter: string
+    }
+
+
 def Totest( 
     model,
     load_file,
     test_dir,
     output_dir,
-    img_height = 480,
-    img_width = 480
+    img_height = 224,
+    img_width = 224
     ):
     Load(model, torch.load(load_file))
     test_imgs = os.listdir(test_dir)
