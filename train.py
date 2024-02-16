@@ -294,13 +294,14 @@ def train_loop(
          print("Error!!!")  
          log_record(logs, f"[-] {e}")
     
-def Totest( model,
-            load_file,
-            test_dir,
-            output_dir,
-            img_height = 480,
-            img_width = 480,
-            ):
+def Totest( 
+    model,
+    load_file,
+    test_dir,
+    output_dir,
+    img_height = 480,
+    img_width = 480
+    ):
     Load(model, torch.load(load_file))
     test_imgs = os.listdir(test_dir)
     with torch.no_grad():
