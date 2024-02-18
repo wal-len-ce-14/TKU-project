@@ -384,7 +384,7 @@ def loaddeter():
     file_path = filedialog.askopenfilename()
     if det_model_E.get() is not None:
         det_model_E.delete(0,'end')
-    seg_model_E.insert(0,file_path) 
+    det_model_E.insert(0,file_path) 
 det_model_button = tk.Button(text="...", height=1, command=loaddeter)
 
 def totest():
@@ -396,11 +396,13 @@ def totest():
     )
     test_mask = tk.Label(image=result["seg_PLT"])
     test_mask.image = result["seg_PLT"]
-    test_mask.grid(column=1, row=5, pady=10, columnspan=5, rowspan=5)
-
+    test_mask.grid(column=1, row=6, pady=10, columnspan=5, rowspan=5)
+    test_ans = tk.Label(text=result["det"])
+    test_ans.grid(column=1, row=11, pady=10, columnspan=2, rowspan=1)
 
 
 start = tk.Button(text="Start test", command=totest)
+
 
 def layout(l=0):
     if l == 0:
@@ -450,7 +452,7 @@ def layout(l=0):
         det_model.grid(column=0, row=3, pady=(3,8), padx=(25,10),columnspan=1)
         det_model_E.grid(column=1, row=3, pady=8, ipadx=50,columnspan=3)
         det_model_button.grid(column=4, row=3, pady=8, padx=(10,10), columnspan=1)
-        
+        start.grid(column=1, row=4, pady=8, padx=(10,10),columnspan=2)
 
 layout()
 logs.see(tk.END)

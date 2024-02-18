@@ -221,7 +221,7 @@ class resNet(nn.Module):
 
         self.linear1024to1024 = nn.Linear(1024, 1024)
         self.linear1024toout = nn.Linear(1024, out_channel)
-        self.drop = nn.Dropout(0.1)
+        self.drop = nn.Dropout(0.15)
 
         # torch.cat([x, y], dim=1)
         

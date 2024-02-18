@@ -1,12 +1,12 @@
 {
-  "img_dir": "D:/project/TKU-project/images",
+  "img_dir": "D:/project/TKU-project/image_cnn",
   "mask_dir": "D:/project/TKU-project/masks",
-  "show_dir": "D:/project/TKU-project/result",
+  "show_dir": "D:/project/TKU-project/result_cnn",
   "checkpoint": "",
   "load": "",
   "batch": 32,
-  "epoch": 50,
-  "lr": 4e-05,
+  "epoch": 200,
+  "lr": 0.0001,
   "lit": 0,
   "img_size_X": 224,
   "img_size_Y": 224

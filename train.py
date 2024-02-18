@@ -82,7 +82,7 @@ def set_model(
         "show_dir": show_dir,
         "save": save,
         "base_seg": 80,
-        "base_det": 60
+        "base_det": 80
     }
     return set
 
@@ -152,12 +152,11 @@ def deter_test(
             preds = preds.cpu()
             y = y.cpu()
             preds_p = preds / preds.sum(dim=1).unsqueeze(0).transpose(0,1)
-            preds = torch.where(preds > 0.5, 1, 0)
-            all_correct += (preds * y).sum()
+            preds = torch.where(preds > 0.55, 1, 0)
+            all_correct += (preds == y).sum()
             all_pixel += y.numel()
-            print(f"tt = {(preds * y).sum()}")
-            print(f"preds_nurmalize = \n{preds}")
-            print(f"true_nurmalize = \n{y}")
+            print(f"preds_nurmalize = \n{preds[:10]}")
+            print(f"true_nurmalize = \n{y[:10]}")
             print(f"num_correct: {all_correct}, num_pixel: {all_pixel}\n")
             print(f"* accurracy => {round(float(all_correct/all_pixel)*100, 2)}%\n")
             
@@ -176,7 +175,7 @@ def deter_test(
                         elif y[i].equal(normal):
                             cv.imwrite(show_dir+'/_{}normal.jpg'.format(i+1), imgx.numpy())            # 原圖
                 for i, imgx in enumerate(x.cpu()):
-                    if idx == 0 and i < 5:
+                    if idx == 0 and i < 5 and epoch%10 == 0:
                         imgx = imgx.permute(1, 2, 0)
 
                         if preds[i].equal(benign):
@@ -213,7 +212,7 @@ def deter_loop(
                     break
                 data = data.to(device, torch.float32)
                 target = target.to(device, torch.float32)
-                prediction = set["model"](data)
+                prediction = torch.sigmoid(set["model"](data))
                 loss = set["loss_f"](prediction, target)
                 set["optimizer"].zero_grad()
                 loss.backward()
@@ -297,38 +296,45 @@ def train_loop(
 def testmodel(
   model_seg,
   model_det,
-  test_img,
+  test_img_path,
   img_size=224,      
 ):
-    seg = torch.load(model_seg)
-    det = torch.load(model_det)
+    seg = torch.load(model_seg).to("cpu")
+    det = torch.load(model_det).to("cpu")
+    test_img = np.array(cv.imread(test_img_path, cv.IMREAD_GRAYSCALE))
     to_transform = A.Compose(
         [
             A.Resize(img_size, img_size),
             ToTensorV2()
         ],
     )
-    image = to_transform(image=test_img)["image"]
-    preds_seg = torch.sigmoid(seg(image))
-    preds_seg = torch.where(preds_seg > 0.5, 255, 0)
+    image = to_transform(image=test_img)["image"].to(torch.float32).unsqueeze(0)
+    
+    preds_seg_o = torch.sigmoid(seg(image))
+    preds_seg = torch.where(preds_seg_o > 0.55, 255, 0)
     preds_seg = preds_seg.squeeze(0).permute(1, 2, 0)
-
+    
     preds_det_o = torch.sigmoid(det(image))
-    preds_det = torch.where(preds_det_o > 0.5, 1, 0)
+    preds_det_r = (preds_det_o / preds_det_o.sum(dim=1).unsqueeze(0).transpose(0,1)).squeeze(0)
+    preds_det = torch.where(preds_det_o > 0.55, 1, 0).squeeze(0)
     benign = torch.tensor([1, 0, 0])
     malignant = torch.tensor([0,1,0])
     normal = torch.tensor([0,0,1])
+
+    print("/////", preds_det_r.shape)
+    print(f"seg: {preds_seg_o},\ndet: {preds_det_o}")
+
     if preds_det.equal(benign):
-        det = f"benign_{preds_det_o[0]*100}%"                  
+        det = f"benign_{preds_det_r[0]*100}%"                  
     elif preds_det.equal(malignant):
-        det = f"malignant_{preds_det_o[1]*100}%"
+        det = f"malignant_{preds_det_r[1]*100}%"
     elif preds_det.equal(normal):
-        det = f"normal_{preds_det_o[2]*100}%"
+        det = f"normal_{preds_det_r[2]*100}%"
     else:
         det = "not sure"  
 
     from PIL import Image, ImageTk
-    preds_seg_PLT = cv.cvtColor(preds_seg, cv.COLOR_BGR2RGB)
+    preds_seg_PLT = cv.cvtColor(preds_seg.numpy().astype(np.uint8), cv.COLOR_BGR2RGB)
     img_PLT = Image.fromarray(preds_seg_PLT)
     img = ImageTk.PhotoImage(img_PLT)
     return {
