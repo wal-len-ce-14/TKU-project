@@ -2,5 +2,6 @@
 set/
 result/*.png
 result/*.jpg
+result_cnn/*.png
 checkpoint/
 __pycache__
