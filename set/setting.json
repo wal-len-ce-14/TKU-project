@@ -1,13 +1,13 @@
 {
-  "img_dir": "C:/Users/walle/English_path/net_img/GUI/image_for_cnn",
-  "mask_dir": "C:/Users/walle/English_path/net_img/GUI/masks",
-  "show_dir": "C:/Users/walle/English_path/net_img/GUI/preds",
+  "img_dir": "D:/project/TKU-project/images",
+  "mask_dir": "D:/project/TKU-project/masks",
+  "show_dir": "D:/project/TKU-project/result",
   "checkpoint": "",
   "load": "",
-  "batch": 10,
+  "batch": 32,
   "epoch": 50,
-  "lr": 0.0001,
+  "lr": 4e-05,
   "lit": 0,
-  "img_size_X": 128,
-  "img_size_Y": 128
+  "img_size_X": 224,
+  "img_size_Y": 224
 }

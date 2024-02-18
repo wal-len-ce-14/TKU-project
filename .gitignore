@@ -3,5 +3,4 @@ set/
 result/*.png
 result/*.jpg
 checkpoint/
-
 __pycache__
