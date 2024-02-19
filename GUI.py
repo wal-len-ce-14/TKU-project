@@ -4,7 +4,6 @@ from tkinter import filedialog
 import threading 
 from PIL import  ImageTk, Image
 
-
 window = tk.Tk()
 window.title("專題")
 window.geometry('960x600')
